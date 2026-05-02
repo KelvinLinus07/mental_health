@@ -15,10 +15,8 @@ app.post("/chat", async (req, res) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama3:8b-instruct-q4_0",
+        model: "phi3",
         prompt: `You are a helpful student wellness assistant.
-Help students with stress, studies, and motivation.
-
 User: ${message}
 Assistant:`,
         stream: false,
@@ -31,7 +29,7 @@ Assistant:`,
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "AI not responding" });
+    res.json({ reply: "⚠️ AI not responding" });
   }
 });
 
