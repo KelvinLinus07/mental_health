@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: "/mental_health/"   // 👈 repo name
+  base: "/mental_health/"   // ⚠️ MUST MATCH REPO NAME
 })
