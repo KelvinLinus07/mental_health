@@ -6,77 +6,94 @@ function Dashboard() {
 
   const [tasks, setTasks] = useState([]);
   const [chat, setChat] = useState([]);
-  const [streak, setStreak] = useState(0);
 
-  // Load data
   useEffect(() => {
-    const savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
-    const savedChat = JSON.parse(localStorage.getItem("chat")) || [];
-
-    setTasks(savedTasks);
-    setChat(savedChat);
-
-    // 🔥 streak logic
-    const lastDate = localStorage.getItem("lastActiveDate");
-    const today = new Date().toDateString();
-
-    if (lastDate === today) {
-      setStreak(parseInt(localStorage.getItem("streak")) || 1);
-    } else {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      if (lastDate === yesterday.toDateString()) {
-        const newStreak = (parseInt(localStorage.getItem("streak")) || 1) + 1;
-        localStorage.setItem("streak", newStreak);
-        setStreak(newStreak);
-      } else {
-        localStorage.setItem("streak", 1);
-        setStreak(1);
-      }
-
-      localStorage.setItem("lastActiveDate", today);
-    }
+    setTasks(JSON.parse(localStorage.getItem("tasks")) || []);
+    setChat(JSON.parse(localStorage.getItem("chat")) || []);
   }, []);
 
   const completed = tasks.filter((t) => t.completed).length;
+  const total = tasks.length;
+  const percent = total ? Math.round((completed / total) * 100) : 0;
+
+  const lastChat =
+    chat.length > 0 ? chat[chat.length - 1].text : "No chats yet";
 
   return (
-    <div style={container}>
-      <h1 style={title}>Dashboard 🧠</h1>
+    <div className="dashboard-container">
 
-      {/* 🔥 Top Cards */}
-      <div style={grid}>
-        <Card title="🔥 Streak" value={`${streak} days`} />
-        <Card title="📚 Tasks Done" value={`${completed}/${tasks.length}`} />
-        <Card title="💬 Chats" value={chat.length} />
+      {/* TITLE */}
+      <h1 className="dashboard-title gradient-text">
+        Student Wellness 🚀
+      </h1>
+
+      {/* STATS */}
+      <div className="grid grid-4 stagger-container">
+        <StatCard title="🔥 Streak" value="2 days" />
+        <StatCard title="📚 Tasks" value={`${completed}/${total}`} />
+        <StatCard title="💬 Chats" value={chat.length} />
+        <StatCard title="⭐ Points" value={completed * 10} />
       </div>
 
-      {/* 🎯 Quick Actions */}
-      <div style={card}>
-        <h3>🚀 Quick Actions</h3>
-        <div style={btnRow}>
-          <button onClick={() => navigate("/mood")}>Mood Check</button>
-          <button onClick={() => navigate("/study")}>Add Task</button>
-          <button onClick={() => navigate("/wellness")}>Relax</button>
+      {/* PROGRESS */}
+      <div className="card glass highlight">
+        <h3 className="section-title">📊 Progress</h3>
+
+        <div className="progress-text">
+          {percent}% completed
+        </div>
+
+        <div className="progress-bar">
+          <div
+            className="progress-fill glow"
+            style={{ width: `${percent}%` }}
+          ></div>
         </div>
       </div>
 
-      {/* 💬 Last Mood */}
-      <div style={card}>
-        <h3>💬 Last Chat</h3>
-        {chat.length > 0 ? (
-          <p>{chat[chat.length - 1].text}</p>
-        ) : (
-          <p>No chats yet</p>
-        )}
+      {/* QUICK ACTIONS */}
+      <div className="card glass">
+        <h3 className="section-title">🚀 Quick Actions</h3>
+
+        <div className="btn-row">
+          <button
+            className="modern-btn glow"
+            onClick={() => navigate("/mood")}
+          >
+            💬 Mood Check
+          </button>
+
+          <button
+            className="modern-btn"
+            onClick={() => navigate("/study")}
+          >
+            📚 Add Task
+          </button>
+
+          <button
+            className="modern-btn secondary"
+            onClick={() => navigate("/wellness")}
+          >
+            🌿 Relax
+          </button>
+        </div>
       </div>
 
-      {/* 📅 Productivity */}
-      <div style={card}>
-        <h3>📅 Productivity</h3>
-        <p>
-          You completed <b>{completed}</b> tasks today.
+      {/* LAST CHAT */}
+      <div className="card glass">
+        <h3 className="section-title">💬 Last Chat</h3>
+        <p className="section-text">{lastChat}</p>
+      </div>
+
+      {/* INSIGHT */}
+      <div className="card glass">
+        <h3 className="section-title">🧠 Insight</h3>
+        <p className="section-text">
+          {percent === 100
+            ? "🔥 You crushed today!"
+            : percent > 50
+            ? "💪 Keep pushing, you're doing great!"
+            : "🚀 Start small, build momentum!"}
         </p>
       </div>
     </div>
@@ -85,50 +102,12 @@ function Dashboard() {
 
 export default Dashboard;
 
-/* 🔹 Reusable Card */
-function Card({ title, value }) {
+/* COMPONENT */
+function StatCard({ title, value }) {
   return (
-    <div style={miniCard}>
-      <h4>{title}</h4>
-      <p style={{ fontSize: "20px", fontWeight: "bold" }}>{value}</p>
+    <div className="card glass stat-card">
+      <p className="stat-title">{title}</p>
+      <h2 className="stat-value">{value}</h2>
     </div>
   );
 }
-
-/* 🎨 styles */
-const container = {
-  maxWidth: "1000px",
-  margin: "20px auto",
-};
-
-const title = {
-  textAlign: "center",
-  marginBottom: "20px",
-};
-
-const grid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-  gap: "15px",
-  marginBottom: "20px",
-};
-
-const miniCard = {
-  background: "#0f172a",
-  padding: "15px",
-  borderRadius: "10px",
-  textAlign: "center",
-};
-
-const card = {
-  background: "#0f172a",
-  padding: "20px",
-  borderRadius: "12px",
-  marginBottom: "15px",
-};
-
-const btnRow = {
-  display: "flex",
-  gap: "10px",
-  marginTop: "10px",
-};

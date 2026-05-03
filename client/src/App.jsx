@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 
-import { FaHome, FaHeart, FaBook, FaLeaf, FaTrophy } from "react-icons/fa";
+import { FaHome, FaHeart, FaBook, FaLeaf, FaTrophy, FaBars } from "react-icons/fa";
 
 import Dashboard from "./pages/Dashboard";
 import Mood from "./pages/Mood";
@@ -23,108 +23,47 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  if (!user) {
-    return <Login />;
-  }
-
-  const linkStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    padding: "12px",
-    borderRadius: "10px",
-    color: "#cbd5e1",
-    textDecoration: "none",
-  };
-
-  const activeStyle = {
-    background: "#2563eb",
-    color: "white",
-  };
+  if (!user) return <Login />;
 
   return (
     <Router>
-      <div
-        style={{
-          display: "flex",
-          height: "100vh",
-          background: "#020617",
-          overflow: "hidden",
-        }}
-      >
-        {/* Sidebar */}
+      <div style={{ display: "flex", minHeight: "100vh", background: "#020617" }}>
+
+        {/* ===== SIDEBAR ===== */}
         <div
           style={{
-            width: collapsed ? "70px" : "230px",
+            width: collapsed ? "80px" : "230px",
             background: "#020617",
             padding: "20px",
-            color: "white",
             transition: "0.3s",
+            borderRight: "1px solid rgba(255,255,255,0.05)",
           }}
         >
-          {/* Collapse Button */}
+          {/* Toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
             style={{
               marginBottom: "20px",
-              background: "#1e293b",
+              background: "none",
               border: "none",
               color: "white",
-              padding: "8px",
-              borderRadius: "6px",
               cursor: "pointer",
-              width: "100%",
+              fontSize: "18px",
             }}
           >
-            ☰
+            <FaBars />
           </button>
 
-          {!collapsed && <h2>🎓 Student Wellness</h2>}
+          <h2 style={{ marginBottom: "20px", fontSize: "18px" }}>
+            {!collapsed && "🎓 Wellness"}
+          </h2>
 
-          <NavLink
-            to="/dashboard"
-            style={({ isActive }) =>
-              isActive ? { ...linkStyle, ...activeStyle } : linkStyle
-            }
-          >
-            <FaHome /> {!collapsed && "Dashboard"}
-          </NavLink>
-
-          <NavLink
-            to="/mood"
-            style={({ isActive }) =>
-              isActive ? { ...linkStyle, ...activeStyle } : linkStyle
-            }
-          >
-            <FaHeart /> {!collapsed && "Mood"}
-          </NavLink>
-
-          <NavLink
-            to="/study"
-            style={({ isActive }) =>
-              isActive ? { ...linkStyle, ...activeStyle } : linkStyle
-            }
-          >
-            <FaBook /> {!collapsed && "Study"}
-          </NavLink>
-
-          <NavLink
-            to="/wellness"
-            style={({ isActive }) =>
-              isActive ? { ...linkStyle, ...activeStyle } : linkStyle
-            }
-          >
-            <FaLeaf /> {!collapsed && "Wellness"}
-          </NavLink>
-
-          <NavLink
-            to="/leaderboard"
-            style={({ isActive }) =>
-              isActive ? { ...linkStyle, ...activeStyle } : linkStyle
-            }
-          >
-            <FaTrophy /> {!collapsed && "Leaderboard"}
-          </NavLink>
+          {/* NAV LINKS */}
+          <SidebarLink to="/dashboard" icon={<FaHome />} label="Dashboard" collapsed={collapsed} />
+          <SidebarLink to="/mood" icon={<FaHeart />} label="Mood" collapsed={collapsed} />
+          <SidebarLink to="/study" icon={<FaBook />} label="Study" collapsed={collapsed} />
+          <SidebarLink to="/wellness" icon={<FaLeaf />} label="Wellness" collapsed={collapsed} />
+          <SidebarLink to="/leaderboard" icon={<FaTrophy />} label="Leaderboard" collapsed={collapsed} />
 
           {/* Logout */}
           <button
@@ -135,39 +74,63 @@ function App() {
               width: "100%",
               background: "#ef4444",
               border: "none",
-              borderRadius: "8px",
+              borderRadius: "10px",
               color: "white",
               cursor: "pointer",
+              transition: "0.2s",
             }}
           >
             {!collapsed && "Logout"}
           </button>
         </div>
 
-        {/* Content */}
+        {/* ===== MAIN CONTENT ===== */}
         <div
           style={{
             flex: 1,
             padding: "20px",
             overflowY: "auto",
-            display: "flex",
-            justifyContent: "center",
           }}
         >
-          <div style={{ width: "100%", maxWidth: "900px" }}>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/mood" element={<Mood />} />
-              <Route path="/study" element={<Study />} />
-              <Route path="/wellness" element={<Wellness />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
-            </Routes>
-          </div>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/mood" element={<Mood />} />
+            <Route path="/study" element={<Study />} />
+            <Route path="/wellness" element={<Wellness />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+          </Routes>
         </div>
+
       </div>
     </Router>
   );
 }
 
 export default App;
+
+/* ===== SIDEBAR LINK COMPONENT ===== */
+function SidebarLink({ to, icon, label, collapsed }) {
+  return (
+    <NavLink
+      to={to}
+      style={({ isActive }) => ({
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        padding: "12px",
+        borderRadius: "10px",
+        color: isActive ? "white" : "#cbd5e1",
+        textDecoration: "none",
+        marginBottom: "10px",
+        background: isActive
+          ? "linear-gradient(135deg, #2563eb, #7c3aed)"
+          : "transparent",
+        transition: "0.2s",
+      })}
+    >
+      {icon}
+      {!collapsed && label}
+    </NavLink>
+  );
+}
