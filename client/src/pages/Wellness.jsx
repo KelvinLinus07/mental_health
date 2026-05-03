@@ -1,58 +1,31 @@
 import { useState, useEffect } from "react";
+import { addPoints } from "../utils/points";
 
 function Wellness() {
-  /* ================= STATE ================= */
+  /* ================= STATE (FIXED LOAD) ================= */
   const [activeGuide, setActiveGuide] = useState(null);
 
-  /* ================= GUIDES ================= */
-  const guides = {
-    panic: {
-      title: "😰 Panic Attack Help",
-      steps: [
-        "Sit down and focus on your breathing",
-        "Inhale slowly for 4 seconds",
-        "Hold for 4 seconds",
-        "Exhale slowly for 6 seconds",
-        "Remind yourself: 'This will pass'",
-        "Focus on 5 things you can see around you",
-      ],
-    },
-    low: {
-      title: "😞 Feeling Low",
-      steps: [
-        "Take a short break from everything",
-        "Drink water or eat something light",
-        "Listen to calming music",
-        "Talk to a friend or someone you trust",
-        "Write your thoughts in a journal",
-        "Do one small productive task",
-      ],
-    },
-    anxiety: {
-      title: "😟 Anxiety Control",
-      steps: [
-        "Slow your breathing (4-4-6 method)",
-        "Avoid overthinking future scenarios",
-        "Ground yourself: name 3 things around you",
-        "Stretch or walk for 5 minutes",
-        "Remind yourself: 'I am safe right now'",
-      ],
-    },
-  };
-
-  /* ================= JOURNAL ================= */
   const [entry, setEntry] = useState("");
-  const [journal, setJournal] = useState([]);
 
-  /* ================= HABITS ================= */
+  const [journal, setJournal] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("journal")) || [];
+    } catch {
+      return [];
+    }
+  });
+
   const [habit, setHabit] = useState("");
-  const [habits, setHabits] = useState([]);
 
-  useEffect(() => {
-    setJournal(JSON.parse(localStorage.getItem("journal")) || []);
-    setHabits(JSON.parse(localStorage.getItem("habits")) || []);
-  }, []);
+  const [habits, setHabits] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("habits")) || [];
+    } catch {
+      return [];
+    }
+  });
 
+  /* ================= SAVE (AUTO) ================= */
   useEffect(() => {
     localStorage.setItem("journal", JSON.stringify(journal));
   }, [journal]);
@@ -61,25 +34,92 @@ function Wellness() {
     localStorage.setItem("habits", JSON.stringify(habits));
   }, [habits]);
 
+  /* ================= GUIDES ================= */
+  const guides = {
+    panic: {
+      title: "😰 Panic Attack Help",
+      steps: [
+        "Sit down and focus on breathing",
+        "Inhale for 4 seconds",
+        "Hold for 4 seconds",
+        "Exhale for 6 seconds",
+        "Repeat slowly",
+        "Tell yourself: This will pass",
+      ],
+    },
+    low: {
+      title: "😞 Feeling Low",
+      steps: [
+        "Drink water and rest",
+        "Listen to calm music",
+        "Talk to someone",
+        "Write thoughts down",
+        "Do one small task",
+      ],
+    },
+    anxiety: {
+      title: "😟 Anxiety Control",
+      steps: [
+        "Slow breathing (4-4-6)",
+        "Ground yourself (5 things)",
+        "Stretch body",
+        "Walk for 5 minutes",
+        "Remind: You are safe",
+      ],
+    },
+  };
+
+  /* ================= JOURNAL ================= */
   const addEntry = () => {
     if (!entry.trim()) return;
-    setJournal([
-      { text: entry, date: new Date().toLocaleString() },
-      ...journal,
+
+    setJournal((prev) => [
+      {
+        text: entry,
+        date: new Date().toLocaleString(),
+      },
+      ...prev,
     ]);
+
     setEntry("");
   };
 
+  const deleteEntry = (i) => {
+    setJournal((prev) => prev.filter((_, index) => index !== i));
+  };
+
+  /* ================= HABITS ================= */
   const addHabit = () => {
     if (!habit.trim()) return;
-    setHabits([...habits, { text: habit, done: false }]);
+
+    setHabits((prev) => [
+      ...prev,
+      { text: habit, done: false },
+    ]);
+
     setHabit("");
   };
 
   const toggleHabit = (i) => {
-    const updated = [...habits];
-    updated[i].done = !updated[i].done;
-    setHabits(updated);
+    setHabits((prev) =>
+      prev.map((h, index) => {
+        if (index !== i) return h;
+
+        // add points ONLY when marking done
+        if (!h.done) {
+          addPoints(5);
+        }
+
+        return {
+          ...h,
+          done: !h.done,
+        };
+      })
+    );
+  };
+
+  const deleteHabit = (i) => {
+    setHabits((prev) => prev.filter((_, index) => index !== i));
   };
 
   /* ================= UI ================= */
@@ -90,20 +130,20 @@ function Wellness() {
         Wellness 🌿
       </h1>
 
-      {/* ================= GUIDES ================= */}
-      <div className="card glass fade-in">
+      {/* ===== MENTAL SUPPORT ===== */}
+      <div className="card fade-in">
         <h3 className="section-title">🧠 Mental Support</h3>
 
-        <div style={guideGrid}>
-          <GuideCard title="🧘 Relax" onClick={() => setActiveGuide("relax")} />
-          <GuideCard title="😰 Panic Attack" onClick={() => setActiveGuide("panic")} />
-          <GuideCard title="😞 Feeling Low" onClick={() => setActiveGuide("low")} />
-          <GuideCard title="😟 Anxiety" onClick={() => setActiveGuide("anxiety")} />
+        <div className="grid grid-3">
+          <Guide title="🧘 Relax" onClick={() => setActiveGuide("relax")} />
+          <Guide title="😰 Panic Attack" onClick={() => setActiveGuide("panic")} />
+          <Guide title="😞 Feeling Low" onClick={() => setActiveGuide("low")} />
+          <Guide title="😟 Anxiety" onClick={() => setActiveGuide("anxiety")} />
         </div>
       </div>
 
-      {/* ================= HABITS ================= */}
-      <div className="card glass fade-in">
+      {/* ===== HABITS ===== */}
+      <div className="card fade-in">
         <h3 className="section-title">🔁 Habit Tracker</h3>
 
         <div style={row}>
@@ -113,30 +153,43 @@ function Wellness() {
             placeholder="Add habit..."
             style={input}
           />
-          <button className="modern-btn" onClick={addHabit}>Add</button>
+          <button className="modern-btn" onClick={addHabit}>
+            Add
+          </button>
         </div>
 
         {habits.map((h, i) => (
-          <div key={i} style={habitCard}>
-            <span style={{
-              textDecoration: h.done ? "line-through" : "none",
-              opacity: h.done ? 0.6 : 1,
-            }}>
+          <div key={i} className="habit-card">
+            <span
+              style={{
+                textDecoration: h.done ? "line-through" : "none",
+                opacity: h.done ? 0.6 : 1,
+              }}
+            >
               {h.text}
             </span>
 
-            <button
-              className="modern-btn secondary"
-              onClick={() => toggleHabit(i)}
-            >
-              {h.done ? "Undo" : "Done"}
-            </button>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                className="modern-btn secondary"
+                onClick={() => toggleHabit(i)}
+              >
+                {h.done ? "Undo" : "Done"}
+              </button>
+
+              <button
+                className="modern-btn"
+                onClick={() => deleteHabit(i)}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* ================= JOURNAL ================= */}
-      <div className="card glass fade-in">
+      {/* ===== JOURNAL ===== */}
+      <div className="card fade-in">
         <h3 className="section-title">📝 Journal</h3>
 
         <textarea
@@ -151,10 +204,36 @@ function Wellness() {
         </button>
       </div>
 
-      {/* ================= GUIDE MODAL ================= */}
+      {/* ===== JOURNAL LIST ===== */}
+      <div className="card fade-in">
+        <h3 className="section-title">📖 Entries</h3>
+
+        {journal.length === 0 && (
+          <p className="section-text">No entries yet</p>
+        )}
+
+        {journal.map((j, i) => (
+          <div key={i} style={entryCard}>
+            <p>{j.text}</p>
+
+            <div style={footer}>
+              <span>{j.date}</span>
+
+              <button
+                className="modern-btn"
+                onClick={() => deleteEntry(i)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ===== MODAL ===== */}
       {activeGuide && (
         <div className="modal">
-          <div className="modal-box glass">
+          <div className="modal-box">
 
             <h2>
               {activeGuide === "relax"
@@ -165,9 +244,9 @@ function Wellness() {
             <ul>
               {(activeGuide === "relax"
                 ? [
-                    "Inhale 4 seconds",
-                    "Hold 4 seconds",
-                    "Exhale 4 seconds",
+                    "Inhale 4 sec",
+                    "Hold 4 sec",
+                    "Exhale 4 sec",
                     "Repeat 5 times",
                   ]
                 : guides[activeGuide].steps
@@ -182,6 +261,7 @@ function Wellness() {
             >
               Close
             </button>
+
           </div>
         </div>
       )}
@@ -191,8 +271,8 @@ function Wellness() {
 
 export default Wellness;
 
-/* ================= COMPONENT ================= */
-function GuideCard({ title, onClick }) {
+/* ===== GUIDE CARD ===== */
+function Guide({ title, onClick }) {
   return (
     <div className="guide-card" onClick={onClick}>
       {title}
@@ -200,14 +280,7 @@ function GuideCard({ title, onClick }) {
   );
 }
 
-/* ================= STYLES ================= */
-
-const guideGrid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-  gap: "15px",
-};
-
+/* ===== STYLES ===== */
 const row = {
   display: "flex",
   gap: "10px",
@@ -226,18 +299,23 @@ const input = {
 const textarea = {
   width: "100%",
   height: "100px",
-  borderRadius: "12px",
+  borderRadius: "10px",
   padding: "10px",
   border: "none",
   background: "#1e293b",
   color: "white",
 };
 
-const habitCard = {
-  display: "flex",
-  justifyContent: "space-between",
+const entryCard = {
   background: "rgba(30,41,59,0.6)",
   padding: "10px",
   borderRadius: "10px",
-  marginBottom: "8px",
+  marginBottom: "10px",
+};
+
+const footer = {
+  display: "flex",
+  justifyContent: "space-between",
+  fontSize: "12px",
+  opacity: 0.7,
 };

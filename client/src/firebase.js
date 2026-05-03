@@ -2,15 +2,17 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
+/* ================= ENV CONFIG ================= */
 const firebaseConfig = {
-  apiKey: "AIzaSyCgIfiMzYFcukXitPRCAA_5uhC7OTI0xxI",
-  authDomain: "student-wellness-736fd.firebaseapp.com",
-  projectId: "student-wellness-736fd",
-  storageBucket: "student-wellness-736fd.firebasestorage.app",
-  messagingSenderId: "158575316451",
-  appId: "1:158575316451:web:88953a97e02dfe67cfa4d6"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+/* ================= INIT ================= */
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);

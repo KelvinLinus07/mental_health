@@ -6,18 +6,38 @@ function Dashboard() {
 
   const [tasks, setTasks] = useState([]);
   const [chat, setChat] = useState([]);
+  const [habits, setHabits] = useState([]);
 
   useEffect(() => {
     setTasks(JSON.parse(localStorage.getItem("tasks")) || []);
     setChat(JSON.parse(localStorage.getItem("chat")) || []);
+    setHabits(JSON.parse(localStorage.getItem("habits")) || []);
   }, []);
 
-  const completed = tasks.filter((t) => t.completed).length;
-  const total = tasks.length;
-  const percent = total ? Math.round((completed / total) * 100) : 0;
+  /* ================= CALCULATIONS ================= */
+  const completedTasks = tasks.filter((t) => t.completed).length;
+  const totalTasks = tasks.length;
+
+  const completedHabits = habits.filter((h) => h.done).length;
+
+  const percent = totalTasks
+    ? Math.round((completedTasks / totalTasks) * 100)
+    : 0;
 
   const lastChat =
     chat.length > 0 ? chat[chat.length - 1].text : "No chats yet";
+
+  /* ================= FAKE POINT SYSTEM ================= */
+  const points =
+    completedTasks * 10 +
+    completedHabits * 5 +
+    chat.length * 2;
+
+  /* ================= STREAK (FAKE BUT SMART) ================= */
+  const streak =
+    completedTasks > 0 || completedHabits > 0
+      ? 2 + completedHabits
+      : 0;
 
   return (
     <div className="dashboard-container">
@@ -29,10 +49,10 @@ function Dashboard() {
 
       {/* STATS */}
       <div className="grid grid-4 stagger-container">
-        <StatCard title="🔥 Streak" value="2 days" />
-        <StatCard title="📚 Tasks" value={`${completed}/${total}`} />
+        <StatCard title="🔥 Streak" value={`${streak} days`} />
+        <StatCard title="📚 Tasks" value={`${completedTasks}/${totalTasks}`} />
         <StatCard title="💬 Chats" value={chat.length} />
-        <StatCard title="⭐ Points" value={completed * 10} />
+        <StatCard title="⭐ Points" value={points} />
       </div>
 
       {/* PROGRESS */}
@@ -74,7 +94,7 @@ function Dashboard() {
             className="modern-btn secondary"
             onClick={() => navigate("/wellness")}
           >
-            🌿 Relax
+            🌿 Wellness
           </button>
         </div>
       </div>
@@ -89,11 +109,13 @@ function Dashboard() {
       <div className="card glass">
         <h3 className="section-title">🧠 Insight</h3>
         <p className="section-text">
-          {percent === 100
-            ? "🔥 You crushed today!"
+          {points > 100
+            ? "🔥 You're on fire!"
+            : percent === 100
+            ? "💯 Perfect day!"
             : percent > 50
-            ? "💪 Keep pushing, you're doing great!"
-            : "🚀 Start small, build momentum!"}
+            ? "💪 Keep going strong!"
+            : "🚀 Start small today!"}
         </p>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { addPoints } from "../utils/points";
 
 function Study() {
   /* ================= STATE ================= */
@@ -10,10 +11,10 @@ function Study() {
   const [time, setTime] = useState(25 * 60);
   const [running, setRunning] = useState(false);
 
-  /* ================= LOAD DATA ================= */
+  /* ================= LOAD ================= */
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("studyTasks"));
-    if (saved) setTasks(saved);
+    const saved = JSON.parse(localStorage.getItem("studyTasks")) || [];
+    setTasks(saved);
   }, []);
 
   useEffect(() => {
@@ -39,26 +40,34 @@ function Study() {
     return `${min}:${sec < 10 ? "0" : ""}${sec}`;
   };
 
-  /* ================= TASK FUNCTIONS ================= */
+  const resetTimer = () => {
+    setTime(25 * 60);
+    setRunning(false);
+  };
+
+  /* ================= TASK ================= */
   const addTask = () => {
-    if (!task || !subject) return;
+    if (!task.trim() || !subject.trim()) return;
 
-    setTasks([
-      ...tasks,
-      {
-        text: task,
-        subject,
-        priority,
-        completed: false,
-      },
-    ]);
+    const newTask = {
+      text: task,
+      subject,
+      priority,
+      completed: false,
+    };
 
+    setTasks([...tasks, newTask]);
     setTask("");
     setSubject("");
   };
 
   const toggleTask = (i) => {
     const updated = [...tasks];
+
+    if (!updated[i].completed) {
+      addPoints(10); // ⭐ Points
+    }
+
     updated[i].completed = !updated[i].completed;
     setTasks(updated);
   };
@@ -67,9 +76,10 @@ function Study() {
     setTasks(tasks.filter((_, index) => index !== i));
   };
 
-  const completedCount = tasks.filter((t) => t.completed).length;
-  const progress = tasks.length
-    ? (completedCount / tasks.length) * 100
+  /* ================= PROGRESS ================= */
+  const completed = tasks.filter((t) => t.completed).length;
+  const percent = tasks.length
+    ? Math.round((completed / tasks.length) * 100)
     : 0;
 
   /* ================= UI ================= */
@@ -81,24 +91,33 @@ function Study() {
       </h1>
 
       {/* ================= TIMER ================= */}
-      <div className="card glass fade-in">
+      <div className="card fade-in">
         <h3 className="section-title">⏱ Focus Timer</h3>
 
         <h2 style={{ fontSize: "32px", marginBottom: "10px" }}>
           {formatTime()}
         </h2>
 
-        <button
-          className="modern-btn glow"
-          onClick={() => setRunning(!running)}
-        >
-          {running ? "Pause" : "Start"}
-        </button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button
+            className="modern-btn glow"
+            onClick={() => setRunning(!running)}
+          >
+            {running ? "Pause" : "Start"}
+          </button>
+
+          <button
+            className="modern-btn secondary"
+            onClick={resetTimer}
+          >
+            Reset
+          </button>
+        </div>
       </div>
 
-      {/* ================= INPUT ================= */}
-      <div className="card glass fade-in">
-        <h3 className="section-title">➕ Add Study Task</h3>
+      {/* ================= ADD TASK ================= */}
+      <div className="card fade-in">
+        <h3 className="section-title">➕ Add Task</h3>
 
         <div style={row}>
           <input
@@ -134,22 +153,26 @@ function Study() {
       </div>
 
       {/* ================= PROGRESS ================= */}
-      <div className="card glass fade-in">
+      <div className="card fade-in">
         <h3 className="section-title">📊 Progress</h3>
 
-        <p>{completedCount} / {tasks.length} completed</p>
+        <p>{completed} / {tasks.length} completed</p>
 
         <div className="progress-bar">
           <div
             className="progress-fill"
-            style={{ width: `${progress}%` }}
+            style={{ width: `${percent}%` }}
           />
         </div>
       </div>
 
       {/* ================= TASK LIST ================= */}
-      <div className="card glass fade-in">
+      <div className="card fade-in">
         <h3 className="section-title">📝 Tasks</h3>
+
+        {tasks.length === 0 && (
+          <p className="section-text">No tasks yet</p>
+        )}
 
         {tasks.map((t, i) => (
           <div key={i} style={taskCard}>
@@ -176,6 +199,7 @@ function Study() {
                 Delete
               </button>
             </div>
+
           </div>
         ))}
       </div>
